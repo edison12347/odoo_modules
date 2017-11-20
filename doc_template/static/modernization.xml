@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding ="utf-8" ?>
+
+<openerp>
+    <data>
+
+        <record id="modernization_document_menu_action" model="ir.actions.act_window">
+            <field name="name">Modernization</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">document.template.modernization</field>
+        </record>
+
+
+        <record id="modernization_view_form" model="ir.ui.view">
+            <field name="name">Modernization</field>
+            <field name="model">document.template.modernization</field>
+            <field name="arch" type="xml">
+                <form>
+                    <group>
+                        <field name="name" string="Name"/>
+                        <field name="date" string="Date"/>
+                        <field name="partner_id" string="Partner"/>
+                        <field name="template_id" string="Template"/>
+                        <field name="amount"/>
+                    </group>
+                    <button name="triger_template_wizzard" string="Load Wizzard" type="object"/>
+                    <button name="over_the_wizard" string="Approve" type="object"/>
+                </form>
+        </field>
+        </record>
+
+        <menuitem action="modernization_document_menu_action"
+                  name="Modernization"
+                  id="modernization_act_menu"
+                  parent="primary_documentation_sub_menu"
+                  sequence="3"/>
+    </data>
+</openerp>

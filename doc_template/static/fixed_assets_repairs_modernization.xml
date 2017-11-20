@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding ="utf-8" ?>
+
+<openerp>
+    <data>
+
+        <record id="fixed_assets_repairs_modernization_document_menu_action" model="ir.actions.act_window">
+            <field name="name">Modernization and repair of fixed ass</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">document.template.fixed_assets_repairs_modernization</field>
+        </record>
+
+
+        <record id="fixed_assets_repairs_modernization_act_view_form" model="ir.ui.view">
+            <field name="name">Modernization and repair of OS</field>
+            <field name="model">document.template.fixed_assets_repairs_modernization</field>
+            <field name="arch" type="xml">
+                <form>
+                    <group>
+                        <field name="name" string="Name"/>
+                        <field name="date" string="Date"/>
+                        <field name="partner_id" string="Partner"/>
+                        <field name="template_id" string="Template"/>
+                        <field name="amount"/>
+                    </group>
+                    <button name="triger_template_wizzard" string="Load Wizzard" type="object"/>
+                    <button name="over_the_wizard" string="Approve" type="object"/>
+                </form>
+        </field>
+        </record>
+
+        <menuitem action="fixed_assets_repairs_modernization_document_menu_action"
+                  name="Modernization and repair of OS"
+                  id="fixed_assets_repairs_modernization_act_menu"
+                  parent="primary_documentation_sub_menu"
+                  sequence="3"/>
+    </data>
+</openerp>

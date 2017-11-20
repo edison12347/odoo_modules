@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding ="utf-8" ?>
+
+<openerp>
+    <data>
+
+        <record id="fixed_assets_preparing_transfer_document_menu_action" model="ir.actions.act_window">
+            <field name="name">Preparing to transfer the fixed assets</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">document.template.fixed_assets_preparing_transfer</field>
+        </record>
+
+
+        <record id="fixed_assets_preparing_transfer_act_view_form" model="ir.ui.view">
+            <field name="name">Preparing to transfer the fixed assets</field>
+            <field name="model">document.template.fixed_assets_preparing_transfer</field>
+            <field name="arch" type="xml">
+                <form>
+                    <group>
+                        <field name="name" string="Name"/>
+                        <field name="date" string="Date"/>
+                        <field name="partner_id" string="Partner"/>
+                        <field name="template_id" string="Template"/>
+                        <field name="amount"/>
+                    </group>
+                    <button name="triger_template_wizzard" string="Load Wizzard" type="object"/>
+                    <button name="over_the_wizard" string="Approve" type="object"/>
+                </form>
+        </field>
+        </record>
+
+        <menuitem action="fixed_assets_preparing_transfer_document_menu_action"
+                  name="Preparing to transfer the fixed assets"
+                  id="fixed_assets_preparing_transfer_act_menu"
+                  parent="primary_documentation_sub_menu"
+                  sequence="3"/>
+    </data>
+</openerp>

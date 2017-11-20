@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding ="utf-8" ?>
+
+<openerp>
+    <data>
+        <record id="model_custom_action" model="ir.actions.act_window">
+            <field name="name">Primary Documentation Action</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">document.template.production_services_act</field>
+            <field name="view_mode">form, tree</field>
+            <field name="view_type">form</field>
+        </record>
+
+        <record id="provision_act_document_menu_action" model="ir.actions.act_window">
+            <field name="name">The Provision of production services Act</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">document.template.production_services_act</field>
+        </record>
+
+        <record id="reconciliation_act_document_menu_action" model="ir.actions.act_window">
+            <field name="name">The Reconciliation Act</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">document.template.reconciliation_act</field>
+        </record>
+
+        <record id="name_document_menu_action" model="ir.actions.act_window">
+            <field name="name">Document name</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">document.template.name</field>
+        </record>
+
+        <record id="provision_act_view_form" model="ir.ui.view">
+            <field name="name">Provision of production services Act</field>
+            <field name="model">document.template.production_services_act</field>
+            <t t-call="website.layout"/>
+        </record>
+
+                <record id="reconciliation_act_view_form" model="ir.ui.view">
+            <field name="name">Reconciliation Act</field>
+            <field name="model">document.template.reconciliation_act</field>
+            <field name="arch" type="xml">
+                <form>
+                    <group>
+                        <field name="name" string="Name"/>
+                        <field name="date" string="Date"/>
+                        <field name="partner_id" string="Partner"/>
+                        <field name="template_id" string="Template"/>
+                        <field name="amount"/>
+                    </group>
+                    <button name="triger_template_wizzard" string="LOAD Wizzard" type="object"/>
+                    <button name="over_the_wizard" string="Approve" type="object"/>
+                </form>
+            </field>
+        </record>
+
+                <record id="name_act_view_form" model="ir.ui.view">
+            <field name="name"> Document Name</field>
+            <field name="model">document.template.name</field>
+            <field name="arch" type="xml">
+                <form>
+                    <group>
+                        <field name="name" string="Name"/>
+                        <field name="date" string="Date"/>
+                        <field name="partner_id" string="Partner"/>
+                        <field name="template_id" string="Template"/>
+                        <field name="amount"/>
+                    </group>
+                    <button name="triger_template_wizzard" string="LOAD Wizzard" type="object"/>
+                    <button name="over_the_wizard" string="Approve" type="object"/>
+                </form>
+            </field>
+        </record>
+
+
+
+        <menuitem id="primary_documentation_menu"
+                  name="Primary documentation"
+                  action="model_custom_action"
+                  parent=""
+                  sequence="3"/>
+
+        <menuitem name="Primary documentation"
+                  action="model_custom_action"
+                  id="primary_documentation_sub_menu"
+                  parent="primary_documentation_menu"
+                  sequence="1"/>
+
+        <menuitem action="provision_act_document_menu_action"
+                  name="The Provision of production services Act"
+                  id="provision_act_menu"
+                  parent="primary_documentation_sub_menu"
+                  sequence="2"/>
+
+        <menuitem action="reconciliation_act_document_menu_action"
+                  name="The Reconciliation Act"
+                  id="reconciliation_act_menu"
+                  parent="primary_documentation_sub_menu"
+                  sequence="3"/>
+
+        <menuitem action="name_document_menu_action"
+                  id="name_act_menu"
+                  name="NAME"
+
+                  parent="primary_documentation_sub_menu"
+                  sequence="100"/>
+
+
+    </data>
+</openerp>

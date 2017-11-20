@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding ="utf-8" ?>
+
+<openerp>
+    <data>
+
+        <record id="registration_advances_accounting_document_menu_action" model="ir.actions.act_window">
+            <field name="name">Registration of advances in tax accounting</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">document.template.registration_advances_accounting</field>
+        </record>
+
+
+        <record id="registration_advances_accounting_act_view_form" model="ir.ui.view">
+            <field name="name">Registration of advances in tax accounting</field>
+            <field name="model">document.template.registration_advances_accounting</field>
+            <field name="arch" type="xml">
+                <form>
+                    <group>
+                        <field name="name" string="Name"/>
+                        <field name="date" string="Date"/>
+                        <field name="partner_id" string="Partner"/>
+                        <field name="template_id" string="Template"/>
+                        <field name="amount"/>
+                    </group>
+                    <button name="triger_template_wizzard" string="Load Wizzard" type="object"/>
+                    <button name="over_the_wizard" string="Approve" type="object"/>
+                </form>
+        </field>
+        </record>
+
+        <menuitem action="registration_advances_accounting_document_menu_action"
+                  name="Registration of advances in tax accounting"
+                  id="registration_advances_accounting_act_menu"
+                  parent="primary_documentation_sub_menu"
+                  sequence="3"/>
+    </data>
+</openerp>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+  <data>
+    <template id="document_template" inherit_id="website.layout" name="Document Layout">
+        <field name="arch" type="xml">
+            <form>
+                <group>
+                    <field name="name" string="Name"/>
+                    <field name="date" string="Date"/>
+                    <field name="partner_id" string="Partner"/>
+                    <field name="template_id" string="Template"/>
+                    <field name="amount"/>
+                </group>
+                <button name="triger_template_wizzard" string="LOAD Wizzard" type="object"/>
+                <button name="over_the_wizard" string="Approve" type="object"/>
+            </form>
+        </field>
+    </template>
+
+  </data>
+</openerp>
