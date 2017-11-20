@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding ="utf-8" ?>
+
+<openerp>
+    <data>
+
+        <record id="amortization_calculation_dev_document_menu_action" model="ir.actions.act_window">
+            <field name="name">Development for calculation of amortization</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">document.template.amortization_calculation_dev</field>
+        </record>
+
+
+        <record id="amortization_calculation_dev_view_form" model="ir.ui.view">
+            <field name="name">Development for calculation of amortization</field>
+            <field name="model">document.template.amortization_calculation_dev</field>
+            <field name="arch" type="xml">
+                <form>
+                    <group>
+                        <field name="name" string="Name"/>
+                        <field name="date" string="Date"/>
+                        <field name="partner_id" string="Partner"/>
+                        <field name="template_id" string="Template"/>
+                        <field name="amount"/>
+                    </group>
+                    <button name="triger_template_wizzard" string="Load Wizzard" type="object"/>
+                    <button name="over_the_wizard" string="Approve" type="object"/>
+                </form>
+        </field>
+        </record>
+
+        <menuitem action="amortization_calculation_dev_document_menu_action"
+                  name="Development for calculation of amortization"
+                  id="amortization_calculation_dev_act_menu"
+                  parent="primary_documentation_sub_menu"
+                  sequence="3"/>
+    </data>
+</openerp>

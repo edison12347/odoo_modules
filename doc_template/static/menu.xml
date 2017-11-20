@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding ="utf-8" ?>
+
+<openerp>
+    <data>
+    	
+        <record id="model_custom_action" model="ir.actions.act_window">
+            <field name="name">Primary Documentation Action</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">document.template.production_services_act</field>
+            <field name="view_mode">form, tree</field>
+            <field name="view_type">form</field>
+        </record>
+
+        <record id="provision_act_document_menu_action" model="ir.actions.act_window">
+            <field name="name">The Provision of production services Act</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">document.template.production_services_act</field>
+        </record>
+
+         
+
+        <menuitem id="primary_documentation_menu"
+                  name="Primary documentation"
+                  action="model_custom_action"
+                  parent=""
+                  sequence="3"/>
+
+        <menuitem name="Primary documentation"
+                  action="model_custom_action"
+                  id="primary_documentation_sub_menu"
+                  parent="primary_documentation_menu"
+                  sequence="1"/>
+    </data>
+</openerp>

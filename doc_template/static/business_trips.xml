@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding ="utf-8" ?>
+
+<openerp>
+    <data>
+
+        <record id="business_trips_document_menu_action" model="ir.actions.act_window">
+            <field name="name">Business trips</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">document.template.business_trips</field>
+        </record>
+
+
+        <record id="business_trips_view_form" model="ir.ui.view">
+            <field name="name">Business trips</field>
+            <field name="model">document.template.business_trips</field>
+            <field name="arch" type="xml">
+                <form>
+                    <group>
+                        <field name="name" string="Name"/>
+                        <field name="date" string="Date"/>
+                        <field name="partner_id" string="Partner"/>
+                        <field name="template_id" string="Template"/>
+                        <field name="amount"/>
+                    </group>
+                    <button name="triger_template_wizzard" string="Load Wizzard" type="object"/>
+                    <button name="over_the_wizard" string="Approve" type="object"/>
+                </form>
+        </field>
+        </record>
+
+        <menuitem action="business_trips_document_menu_action"
+                  name="Business trips"
+                  id="business_trips_act_menu"
+                  parent="primary_documentation_sub_menu"
+                  sequence="3"/>
+    </data>
+</openerp>

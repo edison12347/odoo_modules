@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding ="utf-8" ?>
+
+<openerp>
+    <data>
+
+        <record id="requirement_waybill_document_menu_action" model="ir.actions.act_window">
+            <field name="name">Requirement-waybill</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">document.template.requirement_waybill</field>
+        </record>
+
+
+        <record id="requirement_waybill_act_view_form" model="ir.ui.view">
+            <field name="name">Requirement-waybill</field>
+            <field name="model">document.template.requirement_waybill</field>
+            <field name="arch" type="xml">
+                <form>
+                    <group>
+                        <field name="name" string="Name"/>
+                        <field name="date" string="Date"/>
+                        <field name="partner_id" string="Partner"/>
+                        <field name="template_id" string="Template"/>
+                        <field name="amount"/>
+                    </group>
+                    <button name="triger_template_wizzard" string="Load Wizzard" type="object"/>
+                    <button name="over_the_wizard" string="Approve" type="object"/>
+                </form>
+        </field>
+        </record>
+
+        <menuitem action="requirement_waybill_document_menu_action"
+                  name="Requirement-waybill"
+                  id="requirement_waybill_act_menu"
+                  parent="primary_documentation_sub_menu"
+                  sequence="3"/>
+    </data>
+</openerp>
