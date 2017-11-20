@@ -23,8 +23,8 @@
                                 <tr>
                                     <th>Employee</th>
                                     <th>No of Works</th>
-                                    <th>Workload</th>
-                                    <th>Workload in %</th>
+                                    <th>Task hours [hr]</th>
+                                    <th>Workload [%]</th>
                                     <th>Status</th>
                                 </tr>
                             </thead>

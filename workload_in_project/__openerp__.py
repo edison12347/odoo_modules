@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 ##############################################################################
 #
-#    Cybrosys Technologies Pvt. Ltd.
-#    Copyright (C) 2017-TODAY Cybrosys Technologies(<http://www.cybrosys.com>).
-#    Author: Jesni Banu(<http://www.cybrosys.com>)
+#    Simbioz Holding LLC
+#    Copyright (C) 2016-TODAY Simbioz Holding LLC (<http://www.baspar.eu>).
+#    Author: Author Name (<http://www.baspar.eu>)
 #    you can modify it under the terms of the GNU LESSER
 #    GENERAL PUBLIC LICENSE (LGPL v3), Version 3.
 #
@@ -39,5 +39,5 @@
     'demo': [],
     'installable': True,
     'auto_install': False,
-    'application': False,
+    'application': True,
 }

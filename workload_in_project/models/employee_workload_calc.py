@@ -20,7 +20,7 @@
 #    If not, see <http://www.gnu.org/licenses/>.
 #
 ##############################################################################
-from dateutil.relativedelta import relativedelta
+from openerp.tools import DEFAULT_SERVER_DATE_FORMAT as DF
 from datetime import datetime, timedelta
 from openerp import models, fields, api, _
 
@@ -31,115 +31,186 @@ _logger = logging.getLogger(__name__)
 DEF_WORK_DAYS = 5
 DEF_NO_OF_DAYS = 7
 DEF_WORK_HR = 8
+TODAY = datetime.today().date()
 
 
 class ResUsersInherit(models.Model):
     _inherit = 'res.users'
 
-    progress_rate = fields.Integer(string='Workload')
-    maximum_rate = fields.Integer()
+    current_workload = fields.Integer(string='Current Workload', default=0)
+    maximum_rate = fields.Integer(string='Maximum rate', default=100)
     users_workload_hrs = fields.Integer(string='Current Workload [hrs]')
     max_workload = fields.Integer(string='Maximum workload [hrs]')
 
     """
     Function takes calculates workload based on remaining time for all tasks within the deadline and maximum workload
     """
-    @api.model
-    def fields_view_get(self, view_id=None, view_type='kanban', toolbar=False, submenu=False):
-        ret_val = super(ResUsersInherit, self).fields_view_get(
-            view_id=view_id, view_type=view_type,
-            toolbar=toolbar, submenu=submenu)
 
-        today = datetime.today().date()
+    def determine_workload_timeframe(self, no_of_days):
+        if no_of_days:
+            workload_boundary_date = datetime.today() + timedelta(days=no_of_days - 1)
+        else:
+            workload_boundary_date = datetime.today() + timedelta(days=DEF_NO_OF_DAYS)
+            no_of_days = DEF_NO_OF_DAYS
+        return (workload_boundary_date, no_of_days)
+
+    def get_users_taskwork_hours(self, user, workload_boundary_date):
+        query = "SELECT sum(abs(remaining_hours)) as users_workload_hrs from project_task WHERE " \
+                "user_id = '" + str(user.id) + "'" + \
+                " AND date_deadline >= '" + datetime.today().date().strftime(DF) + "'" + \
+                " AND date_deadline <= '" + workload_boundary_date.date().strftime(DF) + "';"
+        self.env.cr.execute(query)
+        query_results = self.env.cr.fetchone()
+        users_workload_hrs = 0 if query_results[0] is None else query_results[0]
+        return users_workload_hrs
+
+    def calc_max_workload_calendar_based(self, work_schedule, no_of_days):
+        max_workload = 0.0
+
+        hours_in_weekday = {'0': 0, '1': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0}
+        work_time = work_schedule.attendance_ids
+
+        # Write work schedule hours into dict
+        for schedule_line in work_time:
+            time = schedule_line.hour_to - schedule_line.hour_from
+            hours_in_weekday[str(schedule_line.dayofweek)] += time
+
+        # Calculate max_workload for a give period
+        for day in range(no_of_days):
+            current_day = TODAY + timedelta(days=day)
+            max_workload += hours_in_weekday[str(current_day.weekday())]
+
+        return (max_workload, hours_in_weekday)
+
+    def calc_standard_max_workload(self, no_of_days, no_of_hrs):
+        max_workload = 0
+
+        for day in range(no_of_days):
+            current_day = TODAY + timedelta(days=day)
+            if current_day.weekday() in range(DEF_WORK_DAYS):
+                if no_of_hrs != 0 and no_of_hrs != None:
+                    max_workload += no_of_hrs
+                else:
+                    max_workload += DEF_WORK_HR
+        return max_workload
+
+    def calc_leaves_queary(self, user, workload_boundary_date):  # NOT USED
+        # TODO calculation can be improved by using direct query for leaves
+
+        leaves_time_query = "SELECT sum(abs(remaining_hours)) as users_workload_hrs from project_task WHERE " \
+                            "user_id = '" + str(user.id) + "'" + \
+                            " AND date_deadline >= '" + datetime.today().date().strftime(DF) + "'" + \
+                            " AND date_deadline <= '" + workload_boundary_date.date().strftime(DF) + "';"
+        self.env.cr.execute(leaves_time_query)
+        leaves_time = self.env.cr.fetchone()
+        return leaves_time
+
+    def calc_workload_after_leaves(self, work_schedule, max_workload_before_leaves,
+                                   workload_boundary_date, hours_in_weekday):
+        # Substract leaves from max_workload for a given period
+        max_workload_after_leaves = max_workload_before_leaves
+        leaves = work_schedule.leave_ids
+        for leave in leaves:
+            date_to = datetime.strptime(leave.date_to, '%Y-%m-%d %H:%M:%S')
+            date_from = datetime.strptime(leave.date_from, '%Y-%m-%d %H:%M:%S')
+            diff = date_to - date_from
+            if date_from >= datetime.today():
+                for day in range(diff.days + 1):  # if there is a leave it is at least one day
+                    current_day = date_from + timedelta(days=day)
+                    if current_day < workload_boundary_date:
+                        max_workload_after_leaves -= hours_in_weekday[str(current_day.weekday())]
+                        return (max_workload_after_leaves, hours_in_weekday)
+                    else:
+                        break
+
+    def udate_workload(self, user, workload):
+        query = "UPDATE res_users SET current_workload = '" + str(int(workload)) + "' WHERE id = '" + str(user.id) + "';" 
+        self.env.cr.execute(query)
+
+    @api.one
+    def _calc_workload(self):
         ir_values = self.env['ir.values']
         no_of_days = ir_values.get_default('project.config.settings', 'no_of_days')
         no_of_hrs = ir_values.get_default('project.config.settings', 'working_hr')
 
         # Look at the each user and select task within deadlines
-        for user in self.search([]):
-            users_workload_hrs = 0.0
-            max_workload = 0.0
+         if no_of_days == 0:
+            self.udate_workload(self, 0)
+        else:
+            workload_boundary_date, no_of_days = self.determine_workload_timeframe(no_of_days)
 
-            if no_of_days:
-                worload_boudary_date = datetime.today() + timedelta(days=no_of_days - 1)
-            elif no_of_days == 0:
-                user.write({'maximum_rate': 100,
-                            'progress_rate': 0})
-                return ret_val
-            else:
-                worload_boudary_date = datetime.today() + timedelta(days=DEF_NO_OF_DAYS)
-                no_of_days = DEF_NO_OF_DAYS
-            task_within_deadline = self.env['project.task'].search([('user_id', '=', user.id),
-                                                    ('date_deadline', '>=', fields.Date.today()),
-                                                    ('date_deadline', '<=', worload_boudary_date)])
+        users_workload_hrs = self.get_users_taskwork_hours(self, workload_boundary_date)
 
-            _logger.info('gggggggggggggggg______deadline_date_________ggggggggggggg %s', worload_boudary_date)
+        # Calculate users max load
+        employee = self.env['hr.employee'].search([('id', '=', self.id)])
+        if len(employee.calendar_id) != 0:  # If there is a schedule calculate max workload based on it
+            work_schedule = employee.calendar_id
+            max_workload, hours_in_weekday = self.calc_max_workload_calendar_based(work_schedule, no_of_days)
+            max_workload, hours_in_weekday = self.calc_workload_after_leaves(work_schedule,
+                                                                             max_workload,
+                                                                             workload_boundary_date,
+                                                                             hours_in_weekday)
+        else:  # If there is no schedule use default values
+            max_workload = self.calc_standard_max_workload(no_of_days, no_of_hrs)
 
-
-            # Sum up all the remaining workload for tasks within deadlines
-            for each_task in task_within_deadline:
-                remaining_hours = each_task.remaining_hours
-                users_workload_hrs += abs(remaining_hours)
-
-            # Calculate users max load based on schedule excluding leaves
-            employee = self.env['hr.employee'].search([('id', '=', user.id)])
-
-            # If there is a schedule calculate max workload based on it
-            if len(employee.calendar_id) != 0:
-                work_schedule = employee.calendar_id
-
-                # Calculate max workload
-                hours_in_weekday = {'0': 0, '1': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0 }
-
-                work_time = work_schedule.attendance_ids
-
-                # Write work schedule hours into dict
-                for schedule_line in work_time:
-                    time = schedule_line.hour_to - schedule_line.hour_from
-                    hours_in_weekday[str(schedule_line.dayofweek)] += time
-
-                # Calculate max_workload for a give period
-                for day in range(no_of_days):
-                    current_day = today + timedelta(days=day)
-                    max_workload += hours_in_weekday[str(current_day.weekday())]
-
-                max_workload_after_leaves = max_workload
-
-                # Substract leaves from max_workload for a given period
-                leaves = work_schedule.leave_ids
-                for leave in leaves:
-                    date_to = datetime.strptime(leave.date_to, '%Y-%m-%d %H:%M:%S')
-                    date_from = datetime.strptime(leave.date_from, '%Y-%m-%d %H:%M:%S')
-                    diff = date_to - date_from
-                    if date_from >= datetime.today():
-                        for day in range(diff.days + 1): # if there is a leave it is at least one day
-                            current_day = date_from + timedelta(days=day)
-                            if current_day < worload_boudary_date:
-                                max_workload_after_leaves -= hours_in_weekday[str(current_day.weekday())]
-                            else:
-                                break
-                max_workload = max_workload_after_leaves
-            # If there is no schedule use default values
-            else:
-                for day in range(no_of_days):
-                    current_day = today + timedelta(days=day)
-                    if current_day.weekday() in range(DEF_WORK_DAYS):
-                        if no_of_hrs != 0 and no_of_hrs != None:
-                            max_workload += no_of_hrs
-                        else:
-                            max_workload += DEF_WORK_HR
-
-            _logger.info('ttttttttttttttttt______max_workload_________ttttttttttttttt %s', max_workload)
-
-            workload_perc = (users_workload_hrs / max_workload) * 100
-            user.write({'maximum_rate': 100,
-                        'progress_rate': workload_perc,
-                        'users_workload_hrs': users_workload_hrs,
-                        'max_workload': max_workload
-                        })
-        return ret_val
+        workload_perc = (users_workload_hrs / max_workload) * 100
+        self.progress_rate = workload_perc
+        self.current_workload = workload_perc
+        self.udate_workload(self, workload_perc)
+        self.users_workload_hrs = users_workload_hrs
 
 
+    def _empty_function(self):
+        pass
+
+    def _search_free_user(self, operator, value):
+        users_ids = self.env['res.users'].search([('current_workload', '=', 0)])
+        users_list = list(set([user.id for user in users_ids]))
+        return [('id', 'in', users_list)]
+
+    def _search_overloaded_user(self, operator, value):
+        users_ids = self.env['res.users'].search([('current_workload', '>', 100)])
+        users_list = list(set([user.id for user in users_ids]))
+        return [('id', 'in', users_list)]
+
+    def _my_dep_filter(self, operator, value):
+        current_user_employee_ids = self.env['hr.employee'].search([('user_id', '=', self.env.uid)])
+        department_list = [employee.department_id.id for employee in current_user_employee_ids]
+        current_departments_employee_ids = self.env['hr.employee'].search([('department_id', 'in', department_list)])
+        user_list = [employee.user_id.id for employee in current_departments_employee_ids]
+        return [('id', 'in', user_list)]
+
+    progress_rate = fields.Integer(string='Workload', compute=_calc_workload)
+    low_load = fields.Integer(string='Low Workload', compute=_empty_function, search="_search_free_user")
+    overload = fields.Integer(string='Overload', compute=_empty_function, search="_search_overloaded_user")
+    my_dep_filter = fields.Integer(string='Department filter', compute=_empty_function, search="_my_dep_filter")
+
+
+
+class Project_workload(models.Model):
+    _inherit = 'project.project'
+
+    @api.multi
+    def employee_project_filter(self):
+        # TODO figure out how to add 'search_view_id', current one doesn't work
+        members_list = list([user.id for user in self.members])
+        employee_ids = self.env['hr.employee'].search([('user_id', 'in', members_list)])
+        employee_list = list(set([employee.id for employee in employee_ids]))
+        view_id_kanban = self.env['ir.model.data'].get_object_reference('workload_in_project', 'workload_kanban_view')
+        view_id_tree = self.env['ir.model.data'].get_object_reference('workload_in_project', 'workload_tree_view')
+        view_id_search = self.env['ir.model.data'].get_object_reference('workload_in_project', 'view_workload_filter')
+        # _logger.info("+++++++++++++view_id_search++++++++++> %s", view_id_search)
+        return {
+            'name': _("Project Workload Filtered by Project"),
+            'view_mode': "kanban, tree",
+            'view_type': 'form',
+            'res_model': 'res.users',
+            'type': 'ir.actions.act_window',
+            'search_view_id': view_id_search[1],
+            'views': [(view_id_kanban[1], 'kanban'),(view_id_tree[1], 'tree')],
+            'target': 'current',
+            'domain': "[('id', 'in', {})]".format(employee_list),
+        }
 
 
 class ProjectSettings(models.TransientModel):
@@ -174,10 +245,13 @@ class ProjectInherit(models.Model):
         block_users = ir_values.get_default('project.config.settings', 'block_busy_users')
         if block_users:
             if self.user_id.progress_rate > 80:
-                raise Warning(_('%s is %s percentage Overloaded with Work') % (self.user_id.name, self.user_id.progress_rate))
+                raise Warning(
+                    _('%s is %s percentage Overloaded with Work') % (self.user_id.name, self.user_id.progress_rate))
 
 
 class EmployeeWorkloadReport(models.TransientModel):
+
+    # TODO close wizard after downloading a report
     _name = "wizard.workload.report"
     _description = "Employee Workload Report"
 
@@ -194,4 +268,3 @@ class EmployeeWorkloadReport(models.TransientModel):
             'form': data
         }
         return self.env['report'].get_action(self, 'workload_in_project.report_employee_workload', data=datas)
-

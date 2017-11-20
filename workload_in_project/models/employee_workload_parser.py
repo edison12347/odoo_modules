@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 ##############################################################################
 #
-#    Simbioz
-#    Copyright (C) 2017-TODAY Simbioz(<http://www.baspar.eu>).
-#    Author: Ed Chu(<http://www.baspar.eu>)
+#    Simbioz Holding LLC
+#    Copyright (C) 2016-TODAY Simbioz Holding LLC (<http://www.baspar.eu>).
+#    Author: Author Name (<http://www.baspar.eu>)
 #    you can modify it under the terms of the GNU LESSER
 #    GENERAL PUBLIC LICENSE (LGPL v3), Version 3.
 #
@@ -20,12 +20,9 @@
 #    If not, see <http://www.gnu.org/licenses/>.
 #
 ##############################################################################
-from dateutil.relativedelta import relativedelta
 from openerp.report import report_sxw
 from openerp.osv import osv
-from openerp import fields, api, _
 from openerp.http import request
-
 import logging
 _logger = logging.getLogger(__name__)
 
